@@ -67,6 +67,7 @@ Let's test out the Bedding Manipulation environment! Here, the sphere manipulato
 python3 -m assistive_gym --env "BeddingManipulationSphere-v1" --target-limb-code random --render-body-points --verbose
 ```
 We can capture images while the bedding manipulation is performed to generate an image sequence similar to that seen in Figure 2 of the [paper](https://arxiv.org/abs/2109.04930). Images are captured from both top and side views.
+![BM Image Sequence](images/simenv_fig2.png "BM Image Sequence")
 ```
 python3 -m assistive_gym --env "BeddingManipulationSphere-v1" --target-limb-code random --render-body-points --take-images --save-image-dir ./bm_images/
 ```
