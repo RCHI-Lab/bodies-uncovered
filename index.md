@@ -1,7 +1,7 @@
 # Bodies Uncovered: Learning to Manipulate Real Blankets Around People via Physics Simulations
 Kavya Puthuveetil (Georgia Tech), Charles C. Kemp (Georgia Tech), Zackory Erickson (CMU)
 
-<video src="assets/RA-L Submission.mp4" controls="controls">
+<video src="assets/RA-L Submission.mp4" controls="controls" style="max-width: 700px;">
       
 </video>
 ## Abstract
