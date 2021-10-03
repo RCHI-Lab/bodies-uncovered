@@ -6,7 +6,7 @@ Submitted to IEEE Robotics and Automation Letters (RA-L) and International Confe
 <video source src="assets/RA-L Submission.mp4" width="100%">
 </video>
 
-<video src="assets/RA-L Submission.mp4" controls="controls" style="max-width: 730px;">
+<video src="assets/RA-L Submission.mp4" controls="controls" width="100%">
 </video>
 
 ## Abstract
