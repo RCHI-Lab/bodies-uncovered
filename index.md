@@ -11,7 +11,9 @@ While robots present an opportunity to provide physical assistance to older adul
 
 ## Citation
 ### ["Bodies Uncovered: Learning to Manipulate Real Blankets Around People via Physics Simulations"](https://arxiv.org/abs/2109.04930)
+
 K. Puthuveetil, C. C. Kemp, and Z. Erickson, “Bodies Uncovered: Learning to Manipulate Real Blankets Around People via Physics Simulations,” 2021.
+
 ### Bibtex
 ```
 @misc{puthuveetil2021bodies,
