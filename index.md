@@ -3,8 +3,10 @@
 Submitted to IEEE Robotics and Automation Letters (RA-L) and International Conference on Robotics and Automation (ICRA) 2022
 
 
-<video>
-  <source src="assets/RA-L Submission.mp4" width="100%">
+<video source src="assets/RA-L Submission.mp4" width="100%">
+</video>
+
+<video src="assets/RA-L Submission.mp4" controls="controls" style="max-width: 730px;">
 </video>
 
 ## Abstract
