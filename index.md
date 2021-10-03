@@ -1,37 +1,21 @@
-## Welcome to GitHub Pages
+# Bodies Uncovered: Learning to Manipulate Real Blankets Around People via Physics Simulations
+Kavya Puthuveetil, Charles C. Kemp, Zackory Erickson
+Submitted to RA-L and ICRA
 
-You can use the [editor on GitHub](https://github.com/RCHI-Lab/bodies-uncovered/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+## Abstract
+While robots present an opportunity to provide physical assistance to older adults and people with mobility impairments in bed, people frequently rest in bed with blankets that cover the majority of their body. To provide assistance for many daily self-care tasks, such as bathing, dressing, or ambulating, a caregiver must first uncover blankets from part of a person's body. In this work, we introduce a formulation for robotic bedding manipulation around people in which a robot uncovers a blanket from a target body part while ensuring the rest of the human body remains covered. We compare both reinforcement and supervised learning approaches for optimizing policies which provide a robot with grasp and release points that uncover a target part of the body. We trained and conducted evaluations of these policies in physics simulation environments that consist of a deformable cloth mesh covering a simulated human lying supine on a bed. In addition, we transfer simulation-trained policies to a real mobile manipulator and demonstrate that it can uncover a blanket from target body parts of a manikin lying in bed. Source code is available online.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
-### Markdown
+## Citation
+["Bodies Uncovered: Learning to Manipulate Real Blankets Around People via Physics Simulations"](https://arxiv.org/abs/2109.04930)
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
 ```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/RCHI-Lab/bodies-uncovered/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+@misc{puthuveetil2021bodies,
+      title={Bodies Uncovered: Learning to Manipulate Real Blankets Around People via Physics Simulations}, 
+      author={Kavya Puthuveetil and Charles C. Kemp and Zackory Erickson},
+      year={2021},
+      eprint={2109.04930},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO}
+}
+```
