@@ -1,6 +1,7 @@
 import gym, sys, argparse
 import numpy as np
 from .learn import make_env
+from .envs.bm_config import BM_Config
 # import assistive_gym
 
 if sys.version_info < (3, 0):
@@ -37,10 +38,4 @@ def viewer(env_name):
             if coop:
                 done = done['__all__']
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Assistive Gym Environment Viewer')
-    parser.add_argument('--env', default='ScratchItchJaco-v1',
-                        help='Environment to test (default: ScratchItchJaco-v1)')
-    args = parser.parse_args()
-
-    viewer(args.env)
+# see __main__.py file for main

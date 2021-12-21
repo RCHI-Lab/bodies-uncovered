@@ -1,4 +1,4 @@
-import os, time, argparse
+from inspect import Traceback
 import numpy as np
 from numpy.lib.function_base import append
 import pybullet as p
@@ -17,55 +17,33 @@ class BeddingManipulationEnv(AssistiveEnv):
             super(BeddingManipulationEnv, self).__init__(robot=None, human=human, task='bedding_manipulation', obs_robot_len=12, obs_human_len=0, frame_skip=1, time_step=0.01, deformable=True)
             self.use_mesh = use_mesh
 
-        parser = argparse.ArgumentParser(description='Bedding Manipulation Enviornment')
-        parser.add_argument('--target-limb-code', required=True,
-                            help='Code for target limb to uncover, see human.py for a list of available target codes')
-        parser.add_argument('--render-body-points', action='store_true', default=False,
-                            help='Render points on the body. Points still exist even if not rendered')
-        parser.add_argument('--verbose', action='store_true', default=False,
-                            help='More verbose prints')
-        parser.add_argument('--take-images', action='store_true', default=False,
-                            help='Enable taking images during rollout')
-        parser.add_argument('--save-image-dir', default='./saved_images',
-                            help='Directory to save images to')
-        parser.add_argument('--fixed-human-pose', action='store_true', default=False,
-                            help='Fixed human pose between rollouts')
-        parser.add_argument('--vary-blanket-pose', action='store_true', default=False,
-                            help='Introduce variation to the initial configuration of the blanket.')
-        parser.add_argument('--vary-body-shape', action='store_true', default=False,
-                            help='Introduce variation to human body shape.')
-        parser.add_argument('--cmaes-data-collect', action='store_true', default=False,
-                            help='Whether to evaluate a trained policy over n_episodes')
-        parser.add_argument('--evaluate', action='store_true', default=False,
-                            help='Whether to evaluate a trained policy over n_episodes')
-        args, unknown = parser.parse_known_args()
+        self.bm_config = self.configp[self.task]
 
-        if args.target_limb_code == 'random':
+        if self.bm_config['target_limb_code'] == 'random':
             self.fixed_target_limb = False
         else:
             self.fixed_target_limb = True
-            self.target_limb_code = int(args.target_limb_code)
+            self.target_limb_code = int(self.bm_config['target_limb_code'])
 
-        self.body_shape = None if args.vary_body_shape else np.zeros((1, 10))
+        self.body_shape = None if self.bm_config.getboolean('vary_body_shape') else np.zeros((1, 10))
 
-        if args.take_images:
+        if self.bm_config.getboolean('take_images'):
             self.take_images = True
-            self.save_image_dir = args.save_image_dir
+            self.save_image_dir = self.bm_config['save_image_dir']
 
         # * all the parameters below are False unless spepcified otherwise by args
-        self.render_body_points = args.render_body_points
-        self.fixed_pose = args.fixed_human_pose
-        self.verbose = (args.verbose and not args.evaluate)
-        self.blanket_pose_var = args.vary_blanket_pose
-        self.take_images = args.take_images
-        self.cmaes_dc = args.cmaes_data_collect
+        self.render_body_points = self.bm_config.getboolean('render_body_points')
+        self.fixed_pose = self.bm_config.getboolean('fixed_human_pose')
+        self.verbose = self.bm_config.getboolean('bm_verbose')
+        self.blanket_pose_var = self.bm_config.getboolean('vary_blanket_pose')
+        self.take_images = self.bm_config.getboolean('take_images')
+        self.cmaes_dc = self.bm_config.getboolean('cmaes_data_collect')
 
         # * these parameters don't have cmd args to modify them
         self.seed_val = 1001
         self.save_pstate = False
         self.pstate_file = None
-
-
+    
     def step(self, action):
         obs = self._get_obs()
 
@@ -289,6 +267,7 @@ class BeddingManipulationEnv(AssistiveEnv):
     def non_target_initially_uncovered(self, blanket_state):
         '''
         removes nontarget points on the body that are uncovered when the blanket is in it's initial state from the nontarget point set
+        also handles points on the head that are initially covered
         '''
         points_covered = 0
         threshold = 0.028
@@ -297,30 +276,33 @@ class BeddingManipulationEnv(AssistiveEnv):
 
         # * create a list of the nontarget points not covered by the blanket
         for limb, points_pos_nontarget_limb_world in self.points_pos_nontarget_limb_world.items():
-            if limb != self.human.head:
-                points_to_remove[limb] = []
-                for point in range(len(points_pos_nontarget_limb_world)):
-                    covered = False
-                    for i, v in enumerate(blanket_state[1]):
-                        if abs(np.linalg.norm(v[0:2]-points_pos_nontarget_limb_world[point][0:2])) < threshold:
-                            covered = True
-                            points_covered += 1
-                            break
-                    if covered == False:
+            # if limb != self.human.head:
+            points_to_remove[limb] = []
+            for point in range(len(points_pos_nontarget_limb_world)):
+                covered = False
+                for i, v in enumerate(blanket_state[1]):
+                    if abs(np.linalg.norm(v[0:2]-points_pos_nontarget_limb_world[point][0:2])) < threshold:
+                        covered = True
+                        points_covered += 1
+                        break
+                if limb == self.human.head:
+                    if covered == True:
                         points_to_remove[limb].append(point)
+                elif covered == False:
+                    points_to_remove[limb].append(point)
         
         # * remove the identified points from the list of all nontarget points for each limb
         # *     points removed in reverse order so that indexs of identified points don't shift
         for limb in self.points_pos_nontarget_limb_world.keys():
-            if limb != self.human.head:
-                points_to_remove_count += len(points_to_remove[limb])
-                # print("count of points on nontarget initially:", len(self.points_pos_nontarget_limb_world[limb]), len(self.points_nontarget_limb[limb]))
-                for point in reversed(points_to_remove[limb]):
-                    self.points_pos_nontarget_limb_world[limb].pop(point)
-                    if self.render_body_points:
-                        p.removeBody(self.points_nontarget_limb[limb][point].body)
-                        self.points_nontarget_limb[limb].pop(point)
-                # print("count of points on nontarget now:", len(self.points_pos_nontarget_limb_world[limb]), len(self.points_nontarget_limb[limb]))
+            # if limb != self.human.head:
+            points_to_remove_count += len(points_to_remove[limb])
+            # print("count of points on nontarget initially:", len(self.points_pos_nontarget_limb_world[limb]), len(self.points_nontarget_limb[limb]))
+            for point in reversed(points_to_remove[limb]):
+                self.points_pos_nontarget_limb_world[limb].pop(point)
+                if self.render_body_points:
+                    p.removeBody(self.points_nontarget_limb[limb][point].body)
+                    self.points_nontarget_limb[limb].pop(point)
+            # print("count of points on nontarget now:", len(self.points_pos_nontarget_limb_world[limb]), len(self.points_nontarget_limb[limb]))
 
         # print(self.total_nontarget_point_count)
         self.total_nontarget_point_count -= points_to_remove_count
@@ -449,9 +431,10 @@ class BeddingManipulationEnv(AssistiveEnv):
         p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations = 4, physicsClientId=self.id)
 
         if self.blanket_pose_var:
-            delta_y = self.np_random.uniform(-0.05, 0.05)
+            delta_y = self.np_random.uniform(-0.25, 0.05)
             delta_x = self.np_random.uniform(-0.02, 0.02)
-            delta_rad = self.np_random.uniform(-0.0872665, 0.0872665) # * +/- 5 degrees
+            deg = 45
+            delta_rad = self.np_random.uniform(-np.radians(deg), np.radians(deg)) # * +/- degrees
             p.resetBasePositionAndOrientation(self.blanket, [0+delta_x, 0.2+delta_y, 1.5], self.get_quaternion([np.pi/2.0, 0, 0+delta_rad]), physicsClientId=self.id)
         else:
             p.resetBasePositionAndOrientation(self.blanket, [0, 0.2, 1.5], self.get_quaternion([np.pi/2.0, 0, 0]), physicsClientId=self.id)

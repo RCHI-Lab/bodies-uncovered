@@ -7,6 +7,7 @@ from ray.tune.logger import pretty_print
 from numpngw import write_apng
 import pathlib, pickle,time
 import keras
+from .envs.bm_config import BM_Config
 
 
 
@@ -273,6 +274,10 @@ if __name__ == '__main__':
                         help='Whether rendering should generate an animated png rather than open a window (e.g. when using Google Colab)')
     parser.add_argument('--verbose', action='store_true', default=False,
                         help='Whether to output more verbose prints')
+    bm_config = BM_Config()
+    parser = bm_config.add_bm_args(parser)
+    args = parser.parse_args()
+    bm_config.change_bm_config(args)
     args, unknown = parser.parse_known_args()
 
     coop = ('Human' in args.env)
