@@ -247,6 +247,9 @@ class BeddingManipulationEnv(AssistiveEnv):
         points_pos_head_world = self.points_pos_nontarget_limb_world[self.human.head]
         total_points = len(points_pos_head_world)
 
+        if total_points == 0:
+            return 0, 0
+
         # count number of target points covered by the blanket
         for point in range(len(self.points_pos_nontarget_limb_world[self.human.head])):
             covered = False
@@ -274,6 +277,7 @@ class BeddingManipulationEnv(AssistiveEnv):
         threshold = 0.028
         points_to_remove = {}
         points_to_remove_count = 0
+        
 
         # * create a list of the nontarget points not covered by the blanket
         for limb, points_pos_nontarget_limb_world in self.points_pos_nontarget_limb_world.items():
