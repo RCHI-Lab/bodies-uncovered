@@ -18,7 +18,7 @@ from .agents.tool import Tool
 from .agents.furniture import Furniture
 
 class AssistiveEnv(gym.Env):
-    def __init__(self, robot=None, human=None, task='', obs_robot_len=0, obs_human_len=0, time_step=0.02, frame_skip=5, render=False, gravity=-9.81, seed=1001, deformable=False):
+    def __init__(self, robot=None, human=None, task='', obs_robot_len=0, obs_human_len=0, time_step=0.02, frame_skip=5, render=False, gravity=-9.81, seed=1001, deformable=False, opts = None):
         self.task = task
         self.time_step = time_step
         self.frame_skip = frame_skip
@@ -41,7 +41,12 @@ class AssistiveEnv(gym.Env):
         self.human_creation = HumanCreation(self.id, np_random=self.np_random, cloth=('dressing' in task))
         self.human_limits_model = load_model(os.path.join(self.directory, 'realistic_arm_limits_model.h5'))
         #!! CHANGED FOR BEDDING MANIPULATION TASK!! GO BACK AND CHANGE LATER
-        self.action_robot_len = 4
+        if task == 'bedding_manipulation':
+            self.action_robot_len = 4 if opts != '2_interactions' else 8
+        else:
+            self.action_robot_len = len(robot.controllable_joint_indices) if robot is not None else 0
+
+
         self.action_human_len = len(human.controllable_joint_indices) if human is not None and human.controllable else 0
         self.action_space = spaces.Box(low=np.array([-1.0]*(self.action_robot_len+self.action_human_len), dtype=np.float32), high=np.array([1.0]*(self.action_robot_len+self.action_human_len), dtype=np.float32), dtype=np.float32)
         self.obs_robot_len = obs_robot_len
