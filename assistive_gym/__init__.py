@@ -85,6 +85,18 @@ register(
 )
 
 register(
+    id='BMParallelSphere-v1',
+    entry_point='assistive_gym.envs:BMParallelSphereEnv',
+    max_episode_steps=1,
+)
+
+register(
+    id='BMSeriesSphere-v1',
+    entry_point='assistive_gym.envs:BMSeriesSphereEnv',
+    max_episode_steps=1,
+)
+
+register(
     id='BeddingManipulationStretch-v1',
     entry_point='assistive_gym.envs:BeddingManipulationStretchEnv',
     max_episode_steps=200,

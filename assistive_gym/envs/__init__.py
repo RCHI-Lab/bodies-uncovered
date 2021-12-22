@@ -13,6 +13,6 @@ from assistive_gym.envs.view_cloth_vertices import ViewClothVerticesEnv
 from assistive_gym.envs.bed_pose_envs import BedPosePR2Env, BedPosePR2MeshEnv, BedPoseStretchEnv, BedPoseStretchMeshEnv
 
 #! ADDED FOR SPHERE MANIPULATION
-from assistive_gym.envs.bedding_manipulation_envs import BeddingManipulationSphereEnv, BeddingManipulationStretchEnv
+from assistive_gym.envs.bedding_manipulation_envs import BeddingManipulationSphereEnv, BMParallelSphereEnv, BMSeriesSphereEnv, BeddingManipulationStretchEnv
 from assistive_gym.envs.remove_contact_envs import RemoveContactSphereEnv
 from assistive_gym.envs.human_smplx_testing import HumanSMPLXTestingEnv

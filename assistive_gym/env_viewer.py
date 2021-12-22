@@ -27,8 +27,8 @@ def viewer(env_name):
 
         elif 'BeddingManipulationSphere-v1' in env_name:
             action = np.array([0.3, 0.5, 0, 0])
-        elif 'RemoveContactSphere-v1' in env_name:
-            action = np.array([0.3, 0.45])
+        elif env_name in ['BMParallelSphere-v1', 'BMSeriesSphere-v1']:
+            action = np.array([-1, -1, 1, 1, 0.3, 0.5, 0.3, 0.5])
         else:
             print('Observation size:', np.shape(observation), 'Action size:', np.shape(action))
 
