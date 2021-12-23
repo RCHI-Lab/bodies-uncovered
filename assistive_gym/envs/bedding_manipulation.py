@@ -50,7 +50,7 @@ class BeddingManipulationEnv(AssistiveEnv):
 
         if self.verbose:
             print("Target Limb Code:", self.target_limb_code)
-            print("Observation:\n", obs)
+            print("Observation:\n", obs, obs.dtype)
             print("Action: ", action)
 
         # * scale bounds the 2D grasp and release locations to the area over the mattress (action nums only in range [-1, 1])
@@ -329,7 +329,7 @@ class BeddingManipulationEnv(AssistiveEnv):
             output[0], output[1], output[2] = pose, all_joint_angles, all_pos_orient
             return output
 
-        return pose
+        return pose.astype('float32')
 
     def set_seed_val(self, seed = 1001):
         if seed != self.seed_val:

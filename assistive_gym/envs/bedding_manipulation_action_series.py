@@ -341,7 +341,7 @@ class BeddingManipulationSeriesEnv(AssistiveEnv):
             output[0], output[1], output[2] = pose, all_joint_angles, all_pos_orient
             return output
 
-        return pose
+        return pose.astype('float32')
 
     def set_seed_val(self, seed = 1001):
         if seed != self.seed_val:
