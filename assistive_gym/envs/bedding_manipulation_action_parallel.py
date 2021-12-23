@@ -67,12 +67,15 @@ class BeddingManipulationParallelEnv(AssistiveEnv):
         point_counts = [self.total_target_point_count, self.total_nontarget_point_count-head_points, head_points]
 
         grasp_locs = []
+        release_locs = []
         anchor_idxs = []
         constraint_ids = []
+        clipped = [False, False]
+        reward_distance_btw_grasp_release = 0
         for i in range(2):
             # * calculate distance between the 2D grasp location and every point on the blanket, anchor points are the 4 points on the blanket closest to the 2D grasp location
             dist = []
-            for i, v in enumerate(data[1]):
+            for _, v in enumerate(data[1]):
                 v = np.array(v)
                 d = np.linalg.norm(v[0:2] - actions[i][0:2])
                 dist.append(d)
@@ -81,12 +84,13 @@ class BeddingManipulationParallelEnv(AssistiveEnv):
                 # print("anchor loc: ", data[1][a])
 
             # * if no points on the blanket are within 2.8 cm of the grasp location, track that it would have been clipped
-            clipped = False
             if not np.any(np.array(dist) < 0.028):
-                clipped = True
+                clipped[i] = True
 
             # * update grasp_loc var with the location of the central anchor point on the cloth
             grasp_locs.append(np.array(data[1][anchor_idxs[i][0]][0:2]))
+            release_locs.append(actions[i][2:])
+            reward_distance_btw_grasp_release += -150 if np.linalg.norm(grasp_locs[i] - release_locs[i]) >= 1.5 else 0
 
             # * move sphere down to the anchor point on the blanket, create anchor point (central point first, then remaining points) and store constraint ids
             self.sphere_ees[i].set_base_pos_orient(data[1][anchor_idxs[i][0]], np.array([0,0,0]))
@@ -100,30 +104,47 @@ class BeddingManipulationParallelEnv(AssistiveEnv):
         if self.take_images: self.capture_images()
 
         # * move sphere 40 cm from the top of the bed
-        current_pos = self.sphere_ee.get_base_pos_orient()[0]
         delta_z = 0.4                           # distance to move up (with respect to the top of the bed)
         bed_height = 0.58                       # height of the bed
         final_z = delta_z + bed_height          # global goal z position
-        while current_pos[2] <= final_z:
-            self.sphere_ee.set_base_pos_orient(current_pos + np.array([0, 0, 0.005]), np.array([0,0,0]))
-            p.stepSimulation(physicsClientId=self.id)
-            current_pos = self.sphere_ee.get_base_pos_orient()[0]
-        
+        num_steps = 0
+        travel_z = []
+        current_pos = []
+        for i in range(2):
+             current_pos.append(self.sphere_ees[i].get_base_pos_orient()[0])
+             travel_z.append(final_z - current_pos[i][2])
+             steps = np.abs(travel_z[i]//0.005)
+             num_steps = steps if steps > num_steps else num_steps
+        delta_zs = np.array(travel_z)/num_steps
+
+        for _ in range(int(num_steps)):
+            for i in range(2):
+                self.sphere_ees[i].set_base_pos_orient(current_pos[i] + np.array([0, 0, delta_zs[i]]), np.array([0,0,0]))
+                p.stepSimulation(physicsClientId=self.id)
+                current_pos[i] = self.sphere_ees[i].get_base_pos_orient()[0]
         # * take image after blanket lifted up by 40 cm
         if self.take_images: self.capture_images()
 
-        # * move sphere to the release location, release the blanket
-        travel_dist = release_loc - grasp_loc
 
-        # * determine delta x and y, make sure it is, at max, close to 0.005
-        num_steps = np.abs(travel_dist//0.005).max()
-        delta_x, delta_y = travel_dist/num_steps
+        num_steps = 0
+        travel_dist = []
+        for i in range(2):
+             travel_dist.append(release_locs[i] - grasp_locs[i])
+             steps = np.abs(travel_dist[i]//0.005).max()
+             num_steps = steps if steps > num_steps else num_steps
 
-        current_pos = self.sphere_ee.get_base_pos_orient()[0]
+        delta_xs = []
+        delta_ys = []
+        for i in range(2):
+            x, y = travel_dist[i]/num_steps
+            delta_xs.append(x)
+            delta_ys.append(y)
+        
         for _ in range(int(num_steps)):
-            self.sphere_ee.set_base_pos_orient(current_pos + np.array([delta_x, delta_y, 0]), np.array([0,0,0]))
-            p.stepSimulation(physicsClientId=self.id)
-            current_pos = self.sphere_ee.get_base_pos_orient()[0]
+            for i in range(2):
+                self.sphere_ees[i].set_base_pos_orient(current_pos[i] + np.array([delta_xs[i], delta_ys[i], 0]), np.array([0,0,0]))
+                p.stepSimulation(physicsClientId=self.id)
+                current_pos[i] = self.sphere_ees[i].get_base_pos_orient()[0]
 
         # * continue stepping simulation to allow the cloth to settle before release
         for _ in range(20):
@@ -133,8 +154,9 @@ class BeddingManipulationParallelEnv(AssistiveEnv):
         if self.take_images: self.capture_images()
 
         # * release the cloth at the release point, sphere is at the same arbitrary z position in the air
-        for i in constraint_ids:
-            p.removeConstraint(i, physicsClientId=self.id)
+        for i in range(2):
+            for id in constraint_ids[i]:
+                p.removeConstraint(id, physicsClientId=self.id)
         for _ in range(50):
             p.stepSimulation(physicsClientId=self.id)
 
@@ -147,7 +169,6 @@ class BeddingManipulationParallelEnv(AssistiveEnv):
         # * compute rewards
         reward_uncover_target, uncovered_target_count = self.uncover_target_reward(data)
         reward_uncover_nontarget, uncovered_nontarget_count = self.uncover_nontarget_reward(data)
-        reward_distance_btw_grasp_release = -150 if np.linalg.norm(grasp_loc - release_loc) >= 1.5 else 0
         reward_head_kept_uncovered, covered_head_count = self.keep_head_uncovered_reward(data)
         # * sum and weight rewards from individual functions to get overall reward
         reward = self.config('uncover_target_weight')*reward_uncover_target + self.config('uncover_nontarget_weight')*reward_uncover_nontarget + self.config('grasp_release_distance_max_weight')*reward_distance_btw_grasp_release + self.config('keep_head_uncovered_weight')*reward_head_kept_uncovered
@@ -333,7 +354,7 @@ class BeddingManipulationParallelEnv(AssistiveEnv):
             output[0], output[1], output[2] = pose, all_joint_angles, all_pos_orient
             return output
 
-        return pose
+        return pose.astype('float32')
 
     def set_seed_val(self, seed = 1001):
         if seed != self.seed_val:
@@ -463,7 +484,7 @@ class BeddingManipulationParallelEnv(AssistiveEnv):
             position = np.array([-0.3, -0.86, 0.8])
             self.sphere_ees = []
             self.sphere_ees.append(self.create_sphere(radius=0.025, mass=0.0, pos = position, visual=True, collision=True, rgba=[1, 0, 0, 1]))
-            self.sphere_ees.append(self.create_sphere(radius=0.025, mass=0.0, pos = position+0.2, visual=True, collision=True, rgba=[1, 0, 0, 1]))
+            self.sphere_ees.append(self.create_sphere(radius=0.025, mass=0.0, pos = position+0.2, visual=True, collision=True, rgba=[1, 0, 1, 1]))
             
             # * initialize env variables
             from gym import spaces
