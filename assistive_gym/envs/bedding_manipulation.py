@@ -1,4 +1,4 @@
-import os, time, argparse
+import os, time, argparse, pickle
 from inspect import Traceback
 import numpy as np
 from numpy.lib.function_base import append
@@ -423,7 +423,11 @@ class BeddingManipulationEnv(AssistiveEnv):
         if not self.fixed_target_limb:
             self.set_target_limb_code()
         self.target_limb = self.human.all_possible_target_limbs[self.target_limb_code]
-        self.generate_points_along_body()
+
+        if self.body_shape is None:
+            self.generate_points_along_body_vary_body_shape()
+        else:
+            self.generate_points_along_body()
 
         # * take image after points generated (only visible if --render_body_points flag is used)
         if self.take_images: self.capture_images()
@@ -503,6 +507,67 @@ class BeddingManipulationEnv(AssistiveEnv):
 
         #! just for tuning points on torso
         # self.human.all_body_parts = [self.human.waist]
+        # self.target_limb = self.human.all_body_parts
+
+        # output_dict = {}
+
+        # * create points on all the body parts
+        for limb in self.human.all_body_parts:
+            # print(limb)
+
+            # * get the length and radius of the given body part
+            length, radius = self.human.body_info[limb] if limb not in self.human.limbs_need_corrections else self.human.body_info[limb][0]
+
+            # * create points seperately depending on whether or not the body part is/is a part of the target limb
+            # *     generates list of point positions around the body part capsule (sphere if the hands)
+            # *     creates all the spheres necessary to uniformly cover the body part (spheres created at some arbitrary position (transformed to correct location in update_points_along_body())
+            # *     add to running total of target/nontarget points
+            # *     only generate sphere bodies if self.render_body_points == True
+            if limb in self.target_limb:
+                if limb in [self.human.left_hand, self.human.right_hand]:
+                    self.points_pos_on_target_limb[limb] = self.util.sphere_points(radius=radius, samples = 20)
+                    # output_dict[limb] = {'shape': 'sphere', 'num_sections': 0, 'num_points': len(self.points_pos_on_target_limb[limb])}
+                else:
+                    self.points_pos_on_target_limb[limb], sections = self.util.capsule_points(p1=np.array([0, 0, 0]), p2=np.array([0, 0, -length]), radius=radius, distance_between_points=0.03)
+                    # output_dict[limb] = {'shape': 'capsule', 'num_sections': sections, 'num_points': len(self.points_pos_on_target_limb[limb])}
+                if self.render_body_points:
+                    self.points_target_limb[limb] = self.create_spheres(radius=0.01, mass=0.0, batch_positions=[[0, 0, 0]]*len(self.points_pos_on_target_limb[limb]), visual=True, collision=False, rgba=[1, 1, 1, 1])
+                self.total_target_point_count += len(self.points_pos_on_target_limb[limb])
+            else:
+                if limb in [self.human.left_hand, self.human.right_hand]:
+                    self.points_pos_on_nontarget_limb[limb] = self.util.sphere_points(radius=radius, samples = 20)
+                    # output_dict[limb] = {'shape': 'sphere', 'sections': 0, 'num_points': len(self.points_pos_on_target_limb[limb])}
+                else:
+                    self.points_pos_on_nontarget_limb[limb], sections = self.util.capsule_points(p1=np.array([0, 0, 0]), p2=np.array([0, 0, -length]), radius=radius, distance_between_points=0.03)
+                    # output_dict[limb] = {'shape': 'capsule', 'num_sections': sections, 'num_points': len(self.points_pos_on_target_limb[limb])}
+                if self.render_body_points:
+                    self.points_nontarget_limb[limb] = self.create_spheres(radius=0.01, mass=0.0, batch_positions=[[0, 0, 0]]*len(self.points_pos_on_nontarget_limb[limb]), visual=True, collision=False, rgba=[0, 0, 1, 1])
+                self.total_nontarget_point_count += len(self.points_pos_on_nontarget_limb[limb])
+        # import pickle
+        # pickle.dump(output_dict, open("default_body_points.pkl", "wb"))
+
+        # * transforms the generated spheres to the correct coordinate space (aligns points to the limbs)
+        self.update_points_along_body()
+
+    def generate_points_along_body_vary_body_shape(self):
+        '''
+        generate all the target/nontarget posistions necessary to uniformly cover the body parts with points
+        if rendering, generates sphere bodies as well
+        '''
+
+        self.points_pos_on_target_limb = {}
+        self.points_target_limb = {}
+        self.total_target_point_count = 0
+
+        self.points_pos_on_nontarget_limb = {}
+        self.points_nontarget_limb = {}
+        self.total_nontarget_point_count = 0
+
+        default_point_data = pickle.load(open(os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'default_body_points.pkl'), "rb"))
+
+        #! just for tuning points on torso
+        # self.human.all_body_parts = [self.human.waist]
+        # self.target_limb = self.human.all_body_parts
 
         # * create points on all the body parts
         for limb in self.human.all_body_parts:
@@ -519,7 +584,8 @@ class BeddingManipulationEnv(AssistiveEnv):
                 if limb in [self.human.left_hand, self.human.right_hand]:
                     self.points_pos_on_target_limb[limb] = self.util.sphere_points(radius=radius, samples = 20)
                 else:
-                    self.points_pos_on_target_limb[limb] = self.util.capsule_points(p1=np.array([0, 0, 0]), p2=np.array([0, 0, -length]), radius=radius, distance_between_points=0.03)
+                    self.points_pos_on_target_limb[limb] = self.util.capsule_points_body_shape(p1=np.array([0, 0, 0]), p2=np.array([0, 0, -length]), radius=radius,
+                                    sections=default_point_data[limb]['num_sections'], num_points=default_point_data[limb]['num_points'])
                 if self.render_body_points:
                     self.points_target_limb[limb] = self.create_spheres(radius=0.01, mass=0.0, batch_positions=[[0, 0, 0]]*len(self.points_pos_on_target_limb[limb]), visual=True, collision=False, rgba=[1, 1, 1, 1])
                 self.total_target_point_count += len(self.points_pos_on_target_limb[limb])
@@ -527,13 +593,15 @@ class BeddingManipulationEnv(AssistiveEnv):
                 if limb in [self.human.left_hand, self.human.right_hand]:
                     self.points_pos_on_nontarget_limb[limb] = self.util.sphere_points(radius=radius, samples = 20)
                 else:
-                    self.points_pos_on_nontarget_limb[limb] = self.util.capsule_points(p1=np.array([0, 0, 0]), p2=np.array([0, 0, -length]), radius=radius, distance_between_points=0.03)
+                    self.points_pos_on_nontarget_limb[limb] = self.util.capsule_points_body_shape(p1=np.array([0, 0, 0]), p2=np.array([0, 0, -length]), radius=radius,
+                                    sections=default_point_data[limb]['num_sections'], num_points=default_point_data[limb]['num_points'])
                 if self.render_body_points:
                     self.points_nontarget_limb[limb] = self.create_spheres(radius=0.01, mass=0.0, batch_positions=[[0, 0, 0]]*len(self.points_pos_on_nontarget_limb[limb]), visual=True, collision=False, rgba=[0, 0, 1, 1])
                 self.total_nontarget_point_count += len(self.points_pos_on_nontarget_limb[limb])
 
         # * transforms the generated spheres to the correct coordinate space (aligns points to the limbs)
         self.update_points_along_body()
+    
     
     def update_points_along_body(self):
         '''

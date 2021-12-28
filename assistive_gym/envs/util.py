@@ -109,8 +109,49 @@ class Util:
                 # Determine cartesian coordinates for the point along the circular section of the frustum
                 point_on_circle = p1 + section_pos + radius*np.cos(theta)*ortho_vector + radius*np.sin(theta)*normal_vector
                 points.append(point_on_circle)
+        
+        # print(f'sections: {sections}, num points: {len(points)}')
+
+        return points, sections
+    
+    def capsule_points_body_shape(self, p1, p2, radius, sections, num_points):
+        '''
+        Creates a set of points around a capsule.
+        Check out: http://mathworld.wolfram.com/ConicalFrustum.html
+        and: http://math.stackexchange.com/questions/73237/parametric-equation-of-a-circle-in-3d-space
+        sphere = [x, y, z, r]
+        '''
+        points = []
+
+        p1, p2 = np.array(p1), np.array(p2)
+        axis_vector = p2 - p1
+        # Normalize axis vector to unit length
+        axis_vector = axis_vector / np.linalg.norm(axis_vector)
+        ortho_vector = self.orthogonal_vector(axis_vector)
+        # Normalize orthogonal vector to unit length
+        ortho_vector = ortho_vector / np.linalg.norm(ortho_vector)
+        # Determine normal vector through cross product (this will be of unit length)
+        normal_vector = np.cross(axis_vector, ortho_vector)
+
+        # Determine the section positions along the frustum at which we will create point around in a circular fashion
+        # sections = int(np.linalg.norm(p2 - p1) / distance_between_points)
+        section_positions = [(p2 - p1) / (sections + 1) * (i + 1) for i in range(sections)]
+        for i, section_pos in enumerate(section_positions):
+            # Determine radius and circumference of this section
+            circumference = 2*np.pi*radius
+            # Determine the angle difference (in radians) between points
+            theta_dist = 2*np.pi/int(num_points/sections)
+            for j in range(int(num_points/sections)):
+                theta = theta_dist * j
+                # Determine cartesian coordinates for the point along the circular section of the frustum
+                point_on_circle = p1 + section_pos + radius*np.cos(theta)*ortho_vector + radius*np.sin(theta)*normal_vector
+                points.append(point_on_circle)
+        
+        # print(f'sections: {sections}, num points: {len(points)}')
 
         return points
+    
+    
     
     def sphere_points(self, radius, samples=10):
         '''
@@ -131,6 +172,8 @@ class Util:
             z = np.sin(theta) * r
 
             points.append(np.array([x, y, z])*radius)
+        
+        # print(f'sections: sphere, num points: {len(points)}')
         
         return points
 
