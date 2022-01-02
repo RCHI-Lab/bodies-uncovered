@@ -7,12 +7,16 @@ Kavya Puthuveetil, Charles C. Kemp, and Zackory Erickson
 This repository provides a version of [Assistive Gym](https://github.com/Healthcare-Robotics/assistive-gym) modified for this work, as well as additional task-specific functionality. **Although files for other assistive environments are included, ONLY the Bedding Manipulation enviornment is functional!**
 
 ## Citation
-K. Puthuveetil, C. C. Kemp, and Z. Erickson, “Bodies Uncovered: Learning to Manipulate Real Blankets Around People via Physics Simulations,” 2021.
+The paper this code accompanies will be published in IEEE Robotics and Automation Letters (RA-L) by ~March 2022.
+
+K. Puthuveetil, C. C. Kemp, and Z. Erickson, “Bodies Uncovered: Learning to Manipulate Real Blankets Around People via Physics Simulations,” IEEE Robotics and Automation Letters (RA-L), 2021.
 ```
-@misc{puthuveetil2021bodies,
+@article{puthuveetil2021bodies,
       title={Bodies Uncovered: Learning to Manipulate Real Blankets Around People via Physics Simulations}, 
       author={Kavya Puthuveetil and Charles C. Kemp and Zackory Erickson},
-      year={2021},
+      journal={IEEE Robotics and Automation Letters (RA-L)},
+      year={2022},
+      publisher={IEEE},
       eprint={2109.04930},
       archivePrefix={arXiv},
       primaryClass={cs.RO}
