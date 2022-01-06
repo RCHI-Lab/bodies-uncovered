@@ -55,8 +55,8 @@ By default, the Bedding Manipulation environment is configured such that the hum
 | `--vary-blanket-pose`  | Introduce variation to where the blanket is dropped from.                                                       |
 | `--vary-body-shape`    | Introduce variation to the shape of the human within 160-185cm in height.                                       |
 | `--render-body-points` | Render target/non-target points on the body. These points exist even when not rendered.                         |
-| `--bm-verbose`            | More verbose prints.                                                                                            |
-| `--take-images`        | Take images at various critial points during a simulation rollout.                                              |
+| `--bm-verbose`         | More verbose prints.                                                                                            |
+| `--take-images`        | Take images at various critical points during a simulation rollout.                                             |
 | `--save-image-dir`     | Specify directory to save images to if the `--take-images` is selected. Flag followed by path to the directory. |
 | `--cmaes-data-collect` | Sets up the environment to collect data via CMA-ES.                                                             |
 
