@@ -2,7 +2,7 @@
 **Kavya Puthuveetil (Georgia Tech), Charles C. Kemp (Georgia Tech), Zackory Erickson (CMU)**
 Submitted to IEEE Robotics and Automation Letters (RA-L) and International Conference on Robotics and Automation (ICRA) 2022
 
-<video src="assets/RA-L Submission.mp4" controls="controls" width="100%">
+<video src="assets/bodies_uncovered_video_w_sub.mp4" controls="controls" width="100%">
 </video>
 
 ## Abstract
@@ -14,7 +14,7 @@ The paper this site accompanies will be published in IEEE Robotics and Automatio
 
 ##### ["Bodies Uncovered: Learning to Manipulate Real Blankets Around People via Physics Simulations"](https://arxiv.org/abs/2109.04930)
 
-K. Puthuveetil, C. C. Kemp, and Z. Erickson, “Bodies Uncovered: Learning to Manipulate Real Blankets Around People via Physics Simulations,” IEEE Robotics and Automation Letters (RA-L), 2021.
+K. Puthuveetil, C. C. Kemp, and Z. Erickson, “Bodies Uncovered: Learning to Manipulate Real Blankets Around People via Physics Simulations,” IEEE Robotics and Automation Letters (RA-L), 2022.
 
 ##### Bibtex
 ```
