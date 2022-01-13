@@ -2,6 +2,8 @@
 **Kavya Puthuveetil (Georgia Tech), Charles C. Kemp (Georgia Tech), Zackory Erickson (CMU)**
 Submitted to IEEE Robotics and Automation Letters (RA-L) and International Conference on Robotics and Automation (ICRA) 2022
 
+{% include youtubePlayer.html id="oTO2NqfSAXw" %}
+
 <video src="assets/bodies_uncovered_video_w_sub.mp4" controls="controls" width="100%">
 </video>
 
