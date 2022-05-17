@@ -1,5 +1,5 @@
 # Bodies Uncovered: Learning to Manipulate Real Blankets Around People via Physics Simulations
-##[ArXiv Link](https://arxiv.org/abs/2109.04930)
+## [ArXiv Link](https://arxiv.org/abs/2109.04930)
 
 **[Kavya Puthuveetil](https://kpputhuveetil.github.io/) (Georgia Tech), [Charles C. Kemp](https://charliekemp.com/) (Georgia Tech), [Zackory Erickson](https://zackory.com/) (CMU)**
 
